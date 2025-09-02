@@ -160,7 +160,29 @@ Then use Option 1 configuration above.
 
 4. **Test with Claude:** Ask "What time is it?"
 
-## Usage
+## Quick Start Guide
+
+1. **Build everything with CI script:**
+   ```bash
+   chmod +x ci.sh
+   ./ci.sh
+   ```
+
+2. **For Docker deployment:**
+   ```bash
+   # Ensure Docker Desktop is running
+   docker ps
+   
+   # Build with Docker
+   BUILD_TYPE=docker ./ci.sh
+   
+   # Start the container
+   docker-compose up -d
+   ```
+
+3. **Configure Claude in VSCode** with appropriate `mcp.json`
+
+## Usage Examples
 
 Once configured with Claude in VSCode, you can ask natural language questions:
 
@@ -178,6 +200,10 @@ time-mcp-server/
 ├── src/
 │   └── index.ts          # Main server code
 ├── dist/                 # Built JavaScript (generated)
+├── ci.sh                 # CI/CD build script
+├── Dockerfile            # Docker image definition
+├── docker-compose.yml    # Docker orchestration
+├── .dockerignore         # Docker build exclusions
 ├── package.json
 ├── tsconfig.json
 ├── .gitignore
@@ -189,6 +215,41 @@ time-mcp-server/
 - `npm run dev` - Build and run the server (for MCP clients)
 - `npm start` - Run the built server (for MCP clients)
 - `npm test` - Quick test to verify server is working
+
+### CI/CD Build Script
+
+Use the included `ci.sh` script for automated building and testing:
+
+```bash
+# Make executable (first time only)
+chmod +x ci.sh
+
+# Basic build and test
+./ci.sh
+
+# Docker build only
+BUILD_TYPE=docker ./ci.sh
+
+# Full build (local + Docker)
+BUILD_TYPE=all ./ci.sh
+
+# Skip tests
+RUN_TESTS=false ./ci.sh
+
+# Custom Docker tag
+BUILD_TYPE=docker DOCKER_TAG=v1.0.0 ./ci.sh
+
+# CI environment
+CI=true ./ci.sh
+```
+
+**CI Script Features:**
+- ✅ Prerequisite checking (Node.js, Docker)
+- ✅ Automated building (TypeScript + Docker)
+- ✅ Comprehensive testing (tool listing, function calls)
+- ✅ Cross-platform compatibility (macOS/Linux)
+- ✅ Color-coded output and error handling
+- ✅ Build artifact generation
 
 ### Testing
 
