@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "time-server-docker": {
+      "command": "docker",
+      "args": ["exec", "-i", "time-mcp-server", "node", "dist/index.js"],
+      "env": {}
+    },
+    "time-server-local": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {},
+      "cwd": "."
+    }
+  }
+}

@@ -101,8 +101,9 @@ For local Node.js execution:
   "servers": {
     "time-server": {
       "command": "node",
-      "args": ["/Users/user/Desktop/code/mcp/time/dist/index.js"],
-      "env": {}
+      "args": ["dist/index.js"],
+      "env": {},
+      "cwd": "."
     }
   }
 }
@@ -137,28 +138,90 @@ For a running Docker container:
 }
 ```
 
-#### Option 3: Docker Compose Integration
-If using docker-compose, first start the service:
-```bash
-docker-compose up -d
+### Combined Configuration (Both Docker and Local)
+
+Use this configuration to have both options available simultaneously:
+
+```json
+{
+  "servers": {
+    "time-server-docker": {
+      "command": "docker",
+      "args": ["exec", "-i", "time-mcp-server", "node", "dist/index.js"],
+      "env": {}
+    },
+    "time-server-local": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "env": {},
+      "cwd": "."
+    }
+  }
+}
 ```
 
-Then use Option 1 configuration above.
+**Benefits of combined configuration:**
+- ✅ **Fallback options** - If Docker is down, local still works
+- ✅ **Performance testing** - Compare Docker vs local performance  
+- ✅ **Development flexibility** - Switch between deployment methods
+- ✅ **Redundancy** - Multiple servers provide the same functionality
 
-### Configuration Steps for Docker
+**Note:** Place your `mcp.json` file in the project root directory (same level as `package.json`) for relative paths to work correctly.
 
+### Configuration Steps
+
+#### For Docker Setup:
 1. **Start your Docker container:**
    ```bash
    docker-compose up -d
-   # OR
-   docker run -d --name time-mcp-server time-mcp-server
    ```
 
-2. **Update mcp.json** with Docker exec configuration (Option 1 above)
+2. **Verify container is running:**
+   ```bash
+   docker ps | grep time-mcp-server
+   ```
 
-3. **Restart VSCode** to reload MCP configuration
+3. **Update mcp.json** with Docker configuration
 
-4. **Test with Claude:** Ask "What time is it?"
+#### For Local Setup:
+1. **Build the project:**
+   ```bash
+   npm run build
+   # or
+   ./ci.sh
+   ```
+
+2. **Place mcp.json in project root** (same directory as package.json)
+
+3. **Test it works:**
+   ```bash
+   npm test
+   ```
+
+#### For Combined Setup:
+1. **Ensure both are working** (Docker container running + local build exists)
+2. **Place the mcp.json in your project root directory**
+3. **Use the combined mcp.json** configuration above
+
+### Testing Your Configuration
+
+**Test Docker version:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | docker exec -i time-mcp-server node dist/index.js
+```
+
+**Test local version:**
+```bash
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
+```
+
+**Check logs:**
+```bash
+# Docker logs
+docker-compose logs -f time-mcp-server
+
+# Local logs appear in terminal when running
+```
 
 ## Quick Start Guide
 
