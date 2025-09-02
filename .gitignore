@@ -67,3 +67,7 @@ temp/
 
 # Yarn Integrity file
 .yarn-integrity
+
+build-info.json
+
+.git.bak
