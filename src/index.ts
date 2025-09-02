@@ -7,10 +7,22 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
+// Logging utility that writes to stderr (so it doesn't interfere with MCP protocol on stdout)
+const log = (level: string, message: string, data?: any) => {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] ${level}: ${message}`;
+  console.error(logMessage);
+  if (data) {
+    console.error(JSON.stringify(data, null, 2));
+  }
+};
+
 class TimeServer {
   private server: Server;
 
   constructor() {
+    log('INFO', 'Initializing Time MCP Server');
+    
     this.server = new Server(
       {
         name: 'time-server',
@@ -26,17 +38,26 @@ class TimeServer {
     this.setupToolHandlers();
     
     // Error handling
-    this.server.onerror = (error) => console.error('[MCP Error]', error);
+    this.server.onerror = (error) => {
+      log('ERROR', 'MCP Server error', error);
+      console.error('[MCP Error]', error);
+    };
+    
     process.on('SIGINT', async () => {
+      log('INFO', 'Received SIGINT, shutting down server');
       await this.server.close();
       process.exit(0);
     });
   }
 
   private setupToolHandlers() {
+    log('INFO', 'Setting up tool handlers');
+    
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
+      log('INFO', 'Received tools/list request');
+      
+      const tools = {
         tools: [
           {
             name: 'get_current_time',
@@ -76,16 +97,22 @@ class TimeServer {
           }
         ],
       };
+      
+      log('INFO', `Returning ${tools.tools.length} available tools`);
+      return tools;
     });
 
     // Handle tool calls
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
+      log('INFO', `Received tool call: ${name}`, args);
 
       try {
         if (name === 'get_current_time') {
           const timezone = args?.timezone || 'system';
           const format = args?.format || '12hour';
+          
+          log('INFO', `Getting current time - timezone: ${timezone}, format: ${format}`);
           
           const now = new Date();
           let timeString: string;
@@ -114,7 +141,7 @@ class TimeServer {
             }
           }
 
-          return {
+          const result = {
             content: [
               {
                 type: 'text',
@@ -122,10 +149,15 @@ class TimeServer {
               },
             ],
           };
+          
+          log('INFO', `Returning time: ${timeString}`);
+          return result;
         }
 
         if (name === 'get_time_info') {
           const timezone = args?.timezone || 'system';
+          log('INFO', `Getting detailed time info - timezone: ${timezone}`);
+          
           const now = new Date();
 
           let timeInfo: any = {
@@ -162,7 +194,7 @@ class TimeServer {
             }
           }
 
-          return {
+          const result = {
             content: [
               {
                 type: 'text',
@@ -170,10 +202,14 @@ class TimeServer {
               },
             ],
           };
+          
+          log('INFO', 'Returning detailed time info');
+          return result;
         }
 
         throw new Error(`Unknown tool: ${name}`);
       } catch (error) {
+        log('ERROR', `Tool execution failed: ${name}`, error);
         return {
           content: [
             {
@@ -190,9 +226,14 @@ class TimeServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
+    log('INFO', 'Time MCP server connected and ready');
     console.error('Time MCP server running on stdio');
   }
 }
 
+log('INFO', 'Starting Time MCP Server');
 const server = new TimeServer();
-server.run().catch(console.error);
+server.run().catch((error) => {
+  log('ERROR', 'Failed to start server', error);
+  console.error(error);
+});
