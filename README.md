@@ -110,14 +110,27 @@ time-mcp-server/
 
 ### Scripts
 - `npm run build` - Build TypeScript to JavaScript
-- `npm run dev` - Build and run the server
-- `npm start` - Run the built server
+- `npm run dev` - Build and run the server (for MCP clients)
+- `npm start` - Run the built server (for MCP clients)
+- `npm test` - Quick test to verify server is working
 
 ### Testing
-You can test the server directly:
+
+**Quick Test:**
 ```bash
-echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
+npm test
 ```
+
+**Manual Testing:**
+```bash
+# Test tool listing
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}' | node dist/index.js
+
+# Test getting current time
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "get_current_time", "arguments": {}}}' | node dist/index.js
+```
+
+**Note:** `npm start` and `npm run dev` will appear to "hang" - this is normal! The server is waiting for MCP protocol messages on stdin. Use the test commands above or configure with Claude to interact with it.
 
 ## Supported Timezones
 
@@ -154,10 +167,10 @@ MIT
 - Ensure the `src/index.ts` file exists
 - Run `npm run build` after creating the file
 
-**Server not responding:**
-- Check that the path in `mcp.json` is absolute and correct
-- Verify the server was built successfully (`dist/index.js` exists)
-- Restart VSCode after configuration changes
+**Server appears to hang:**
+- This is normal behavior! The server waits for MCP protocol messages on stdin
+- Use `npm test` for quick verification, or configure with Claude for actual usage
+- The server only responds when it receives proper JSON-RPC messages
 
 **TypeScript errors:**
 - Make sure all dependencies are installed: `npm install`
