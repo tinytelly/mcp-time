@@ -67,6 +67,3 @@ temp/
 
 # Yarn Integrity file
 .yarn-integrity
-
-# MCP specific (if you want to exclude local config)
-.vscode/mcp.json

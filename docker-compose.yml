@@ -1,0 +1,27 @@
+services:
+  time-mcp-server:
+    build: .
+    container_name: time-mcp-server
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    environment:
+      - NODE_ENV=production
+      - TZ=UTC
+    # For network MCP (if you want to expose via TCP)
+    # ports:
+    #   - "3000:3000"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "sh", "-c", "echo '{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"tools/list\"}' | node dist/index.js | grep -q 'get_current_time'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: If you want to run multiple MCP servers
+  # another-mcp-server:
+  #   build: ../another-mcp-server
+  #   container_name: another-mcp-server
+  #   restart: unless-stopped

@@ -33,7 +33,18 @@ Get detailed time information including timezone data, day of week, and timestam
 - "Give me detailed time information"
 - "Show time info for London timezone"
 
+## Prerequisites
+
+- **Node.js** (v18 or higher)
+- **npm** 
+- **Docker Desktop** (for Docker builds)
+  - Install via: `brew install --cask docker` 
+  - Or download from https://www.docker.com/products/docker-desktop/
+  - **Important**: You need Docker Desktop (full app), not just Docker CLI
+
 ## Installation
+
+### Local Development
 
 1. **Clone or create the project:**
    ```bash
@@ -51,38 +62,103 @@ Get detailed time information including timezone data, day of week, and timestam
    npm run build
    ```
 
+### Docker Deployment
+
+**Prerequisites**: Ensure Docker Desktop is running
+```bash
+# Check Docker is running
+docker ps
+
+# If not running, start Docker Desktop
+open -a Docker  # or open -a "Docker Desktop"
+```
+
+1. **Build and run with Docker Compose:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Or build manually:**
+   ```bash
+   docker build -t time-mcp-server .
+   docker run -d --name time-mcp-server time-mcp-server
+   ```
+
+3. **View logs:**
+   ```bash
+   docker-compose logs -f time-mcp-server
+   ```
+
 ## Configuration
 
-### For Claude in VSCode
+## Configuration
 
-Create an `mcp.json` file in your project or workspace:
+### Local Development - Claude in VSCode
 
+For local Node.js execution:
 ```json
 {
   "servers": {
     "time-server": {
       "command": "node",
-      "args": ["/absolute/path/to/time-mcp-server/dist/index.js"],
+      "args": ["/Users/user/Desktop/code/mcp/time/dist/index.js"],
       "env": {}
     }
   }
 }
 ```
 
-**Important:** Replace `/absolute/path/to/time-mcp-server/` with the actual absolute path to your project directory.
+### Docker Deployment - Claude in VSCode
 
-### Example Configuration
+#### Option 1: Docker Exec (Recommended)
+For a running Docker container:
 ```json
 {
   "servers": {
     "time-server": {
-      "command": "node",
-      "args": ["/Users/username/projects/time-mcp-server/dist/index.js"],
+      "command": "docker",
+      "args": ["exec", "-i", "time-mcp-server", "node", "dist/index.js"],
       "env": {}
     }
   }
 }
 ```
+
+#### Option 2: Docker Run (Creates new container each time)
+```json
+{
+  "servers": {
+    "time-server": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "time-mcp-server"],
+      "env": {}
+    }
+  }
+}
+```
+
+#### Option 3: Docker Compose Integration
+If using docker-compose, first start the service:
+```bash
+docker-compose up -d
+```
+
+Then use Option 1 configuration above.
+
+### Configuration Steps for Docker
+
+1. **Start your Docker container:**
+   ```bash
+   docker-compose up -d
+   # OR
+   docker run -d --name time-mcp-server time-mcp-server
+   ```
+
+2. **Update mcp.json** with Docker exec configuration (Option 1 above)
+
+3. **Restart VSCode** to reload MCP configuration
+
+4. **Test with Claude:** Ask "What time is it?"
 
 ## Usage
 
@@ -108,7 +184,7 @@ time-mcp-server/
 └── README.md
 ```
 
-### Scripts
+### Local Development Scripts
 - `npm run build` - Build TypeScript to JavaScript
 - `npm run dev` - Build and run the server (for MCP clients)
 - `npm start` - Run the built server (for MCP clients)
@@ -166,6 +242,12 @@ MIT
 **"No inputs were found" error:**
 - Ensure the `src/index.ts` file exists
 - Run `npm run build` after creating the file
+
+**Docker not working:**
+- Ensure Docker Desktop is installed and running: `brew install --cask docker`
+- Start Docker Desktop: `open -a Docker` (wait for whale icon in menu bar)
+- Verify with: `docker ps` (should not show connection errors)
+- Docker Desktop takes 30-60 seconds to fully start after launching
 
 **Server appears to hang:**
 - This is normal behavior! The server waits for MCP protocol messages on stdin
