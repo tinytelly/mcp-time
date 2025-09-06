@@ -2,7 +2,7 @@
   "servers": {
     "time-server-docker": {
       "command": "docker",
-      "args": ["exec", "-i", "time-mcp-server", "node", "dist/index.js"],
+      "args": ["run", "--rm", "-i", "time-mcp-server"],
       "env": {}
     },
     "time-server-local": {
